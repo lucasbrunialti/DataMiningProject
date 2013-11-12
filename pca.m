@@ -4,6 +4,15 @@ function [ XReduced, eigenvals, eigenvecs ] = pca( X, reduceTo )
     
     % Compute Det(covX - I*alpha): traverse the matrix diagonals multiplying the
     % polynomials of main diagonal and suming the other diagonal
+    
+    syms alpha;
+    I = eye(size(covX,2));
+    IA = I * alpha;
+    D = covX * IA;
+    
+    p = det(D);
+    sol = solve(p); % Get the possible solutions for the equation
+    
     left = 0;
     right = 1;
     
