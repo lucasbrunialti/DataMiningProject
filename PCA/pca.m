@@ -3,9 +3,12 @@ function [ XReduced, eigenvals, eigenvecs ] = pca( X_aux, reduceTo )
 
     eigenvecs = [];
     
+    n = size(X_aux,1);
+    
+    % Normalization: centralization of the data X - mean
     X = X_aux - repmat(mean(X_aux), size(X_aux, 1), 1);
     
-    covX = X' * X;
+    covX = (X' * X) / (n-1);
     
     alpha = sym('alpha','real');
     I = eye(size(covX,2));
@@ -21,22 +24,15 @@ function [ XReduced, eigenvals, eigenvecs ] = pca( X_aux, reduceTo )
        
         eigenval = eigenvals(i,1);
         
-        wi_aux = sym('w_%d_%d', [size(X,2) 1]);
+        % Use Reduced row echelon form of D in order get possible solutions
+        % to the linear equations ending up with a eigenvector
+        rrefSol = rref([subs(D, alpha, eigenval) zeros(size(X,2), 1)]);
         
-        wi_aux = subs(D, alpha, eigenval) * wi_aux;
+        % choose one possible solution
+        wi = rrefSol(:,size(rrefSol,2)-1);
         
-        wi_aux = solve(wi_aux);
-        
-        wi = zeros(size(X,2), 1);
-        
-        
-        % Convert struct to matrix
-        fields = fieldnames(wi_aux);
-        
-        for j = 1:numel(fields)
-            wi(j,1) = subs(wi_aux.(fields{j}), 'z', 1);
-        end
-
+        % substitute free values (zeros) by one
+        wi = wi + (wi == 0);
         
         % Normalize such that ||wi|| = 1
         wi = wi ./ sqrt(sum( wi .^ 2 ));
@@ -47,6 +43,6 @@ function [ XReduced, eigenvals, eigenvecs ] = pca( X_aux, reduceTo )
     
     Z = X * eigenvecs;
     
-    XReduced = Z(:, reduceTo );
+    XReduced = Z(:, 1:reduceTo );
 
 end
