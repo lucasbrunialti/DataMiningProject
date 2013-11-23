@@ -11,13 +11,20 @@ function [ XReduced, eigenvals, eigenvecs ] = pca( X_aux, reduceTo )
     covX = (X' * X) / (n-1);
     
     alpha = sym('alpha','real');
+    
     I = eye(size(covX,2));
+    
     IA = I * alpha;
+    
     D = covX - IA;
     
+    
     p = det(D);
+    
     % Calculates the possible solutions for the equation
     eigenvals = subs(solve(p));
+    
+    eigenvals = sort(eigenvals, 'descend');
     
     % For each value of alpha, calculates the eigenvecs
     for i=1:size(X, 2)
