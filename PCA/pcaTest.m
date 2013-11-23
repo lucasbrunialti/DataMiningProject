@@ -11,3 +11,15 @@ grid on;
 figure;
 area(cumsum(eigenvaluesNorm));
 grid on;
+
+[ XReduced, eigenvals, eigenvecs ] = pca(data_clust,2);
+
+figure;
+plot(XReduced(:,1), XReduced(:,2), 'o');
+grid on;
+
+[ XReduced, eigenvals, eigenvecs ] = pca(data_clust,3);
+
+figure;
+plot3(XReduced(:,1), XReduced(:,2), XReduced(:,3), 'o');
+grid on;
