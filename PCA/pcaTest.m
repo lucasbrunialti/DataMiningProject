@@ -1,4 +1,4 @@
-data_clust = load('conjunto_agrupamento.data.txt');
+data_clust = importdata('conjunto_agrupamento.data.txt');
 
 [ XReduced, eigenvals, eigenvecs ] = pca(data_clust,16);
 
