@@ -33,13 +33,11 @@ function [ XReduced, eigenvals, eigenvecs ] = pca( X_aux, reduceTo )
         
         % Use Reduced row echelon form of D in order get possible solutions
         % to the linear equations ending up with a eigenvector
-        rrefSol = rref([subs(D, alpha, eigenval) zeros(size(X,2), 1)]);
+        A = subs(D, alpha, eigenval);
         
-        % choose one possible solution
-        wi = rrefSol(:,size(rrefSol,2)-1);
+        [~, U, ~] = lu(A);
         
-        % substitute free values (zeros) by one
-        wi = wi + (wi == 0);
+        wi = solveUpper(U);
         
         % Normalize such that ||wi|| = 1
         wi = wi ./ sqrt(sum( wi .^ 2 ));
