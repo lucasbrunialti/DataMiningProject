@@ -54,7 +54,7 @@ public class Dbscan {
 	
 	public void print() {
 		for(int i = 0 ; i < point.length ;i++) {
-			System.out.println(point[i].getCoordinates() + point[i].clusterId);
+			System.out.println("Cluster: " + point[i].clusterId + " Coords: " + point[i].getCoordinates());
 		}
 	}
 }
