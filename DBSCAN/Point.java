@@ -34,4 +34,17 @@ public class Point {
 		}
 		return ret;
 	}
+	
+	/**
+	 * 
+	 * @param point
+	 * @return
+	 */
+	public boolean isEqual(Point point) {
+		for(int i = 0 ; i < coordinates.length ; i++) {
+			if(coordinates[i] != point.coordinates[i])
+				return false;
+		}
+		return true;
+	}
 }

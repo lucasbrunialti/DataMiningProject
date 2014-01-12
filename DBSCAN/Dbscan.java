@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class Dbscan {
 
-	public ArrayList<Point> points;
+	public ArrayList<Point> points = new ArrayList<Point>();
 	public double eps;
 	public int minPoints;
 	public int clusterId = 1;
@@ -65,7 +65,19 @@ public class Dbscan {
 		while(seeds.size() > 0) {
 			Point current = seeds.get(0);
 			
+			ArrayList<Point> results = regionQuery(points, current, eps);
 			
+			if(results.size() >= minPoints) {
+				for(int i = 0 ; i < results.size() ; i++) {
+					Point temp = results.get(i);
+					if(temp.clusterId == UNCLASSIFIED || temp.clusterId == NOISE) {
+						if(temp.clusterId == UNCLASSIFIED) {
+							seeds.add(temp);
+						}
+						temp.clusterId = id;
+					}
+				}
+			}
 			
 			seeds.remove(0);
 		}
@@ -105,17 +117,31 @@ public class Dbscan {
 		return clusterId;
 	}
 	
-	public static void main(String[] args) {
-		try {
-			Dbscan db = new Dbscan(2.0, 10);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
 	public void print() {
+		System.out.println("** Set of points **");
 		for(int i = 0 ; i < points.size() ;i++) {
 			System.out.println("Cluster: " + points.get(i).clusterId + " Coords: " + points.get(i).getCoordinates());
+		}
+		System.out.println("\n\n");
+	}
+
+	public void printNon0() {
+		System.out.println("** Set of points **");
+		for(int i = 0 ; i < points.size() ;i++) {
+			if(points.get(i).clusterId != NOISE)
+				System.out.println("Cluster: " + points.get(i).clusterId + " Coords: " + points.get(i).getCoordinates());
+		}
+		System.out.println("\n\n");
+	}
+	
+	public static void main(String[] args) {
+		try {
+			Dbscan db = new Dbscan(10.0, 3);
+			db.dbscan();
+			db.print();
+			db.printNon0();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 }
