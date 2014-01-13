@@ -1,147 +1,178 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class Dbscan {
 
-	public ArrayList<Point> points = new ArrayList<Point>();
-	public double eps;
-	public int minPoints;
-	public int clusterId = 1;
-	
-	public final Integer UNCLASSIFIED 	= -1;
-	public final Integer NOISE 			= 0;
+	private ArrayList<Point> data = new ArrayList<Point>();
 
-	public Dbscan(double eps, int minPts) throws IOException {
-		this.eps = eps;
-		this.minPoints = minPts;
-		readDataFile();
+	private final Integer UNCLASSIFIED 	= -1;
+	private final Integer NOISE 		= 0;
+
+	public Dbscan(String path) {
+		readData(path);
 	}
 
-	public void readDataFile() throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(new File("conjunto_agrupamento.data.txt")));
-		String line = "";
-		while( (line = br.readLine()) != null ) {
-			String[] aux = line.split("\t");
-			Double[] coord = new Double[aux.length];
-			for(int i = 0 ; i < aux.length ; i++) {
-				coord[i] = new Double(aux[i]);
-			}
-			points.add(new Point(coord));
-		}
-		br.close();
-		print();
-	}
+	@SuppressWarnings("unchecked")
+	public int dbscan(Double eps, Integer minPoints) {
+		Integer clusterId = 1;
+		ArrayList<Point> points = new ArrayList<Point>();
+		points = (ArrayList<Point>) data.clone();
 
-	public void dbscan() {
 		for(int i = 0 ; i < points.size() ; i++) {
 			Point point = points.get(i);
-			// If the point is not in a cluster yet
+
 			if(point.clusterId == UNCLASSIFIED) {
 				if(expandCluster(points, point, clusterId, eps, minPoints)) {
-					clusterId = getNextId();
+					clusterId = clusterId + 1;
 				}
 			}
 		}
+		
+		plot(points, eps, minPoints, clusterId - 1);
+		
+		return clusterId - 1;
 	}
 
-	public void dbscan(double eps, int minPts) {
-		
-	}
-	
-	private boolean expandCluster(ArrayList<Point> points, Point point, int id,
-			Double eps, Integer minPoints) {
+	private boolean expandCluster(ArrayList<Point> points, Point point,
+			Integer id, Double eps, Integer minPoints) {
 		ArrayList<Point> seeds = regionQuery(points, point, eps);
-		
+
 		if(seeds.size() < minPoints) {
 			point.clusterId = NOISE;
 			return false;
-		}
-		
-		changeIdsOfReachablePoints(seeds, point, id);
-		
-		while(seeds.size() > 0) {
-			Point current = seeds.get(0);
-			
-			ArrayList<Point> results = regionQuery(points, current, eps);
-			
-			if(results.size() >= minPoints) {
-				for(int i = 0 ; i < results.size() ; i++) {
-					Point temp = results.get(i);
-					if(temp.clusterId == UNCLASSIFIED || temp.clusterId == NOISE) {
-						if(temp.clusterId == UNCLASSIFIED) {
-							seeds.add(temp);
+		} else {
+			/* Delete the current point */
+			putSeedsInCluster(seeds, point, id);
+
+			while(seeds.size() > 0) {
+				Point current = seeds.get(0);
+
+				ArrayList<Point> result = regionQuery(points, current, eps);
+				if(result.size() > minPoints) {
+					for(int i = 0 ; i < result.size() ; i++) {
+						Point aux = result.get(i);
+						if(aux.clusterId == UNCLASSIFIED || aux.clusterId == NOISE) {
+							if(aux.clusterId == UNCLASSIFIED) {
+								seeds.add(aux);
+							}
+							aux.clusterId = id;
 						}
-						temp.clusterId = id;
 					}
 				}
+
+				seeds.remove(0);
 			}
-			
-			seeds.remove(0);
+
+			return true;
+		}
+	}
+
+	private void putSeedsInCluster(ArrayList<Point> seeds,
+			Point point, Integer id) {
+		int indexToRemove = -1;
+		
+		for(int i = 0 ; i < seeds.size(); i++) {
+			Point curr = seeds.get(i);
+			curr.clusterId = id;
+			if(curr.equals(point)) {
+				indexToRemove = i;
+			}
 		}
 		
-		return true;
-	}
-	
-	/**
-	 * Changes the labels of the points and remove the 
-	 * inicial point of the seeds.
-	 * 
-	 * @param seeds
-	 * @param point
-	 * @param id
-	 */
-	private void changeIdsOfReachablePoints(ArrayList<Point> seeds, Point point, int id) {
-		for(int i = 0 ; i < seeds.size() ; i++) {
-			seeds.get(i).clusterId = id;
-			if(point.equals(seeds.get(i))) {
-				seeds.remove(i);
-			}
-		}
+		seeds.remove(indexToRemove);
 	}
 
 	private ArrayList<Point> regionQuery(ArrayList<Point> points, Point point, Double eps) {
-		ArrayList<Point> seeds = new ArrayList<Point>();
+		ArrayList<Point> result = new ArrayList<Point>();
+		
 		for(int i = 0 ; i < points.size() ; i++) {
-			if(point.distance(points.get(i)) <= eps) {
-				seeds.add(points.get(i));
+			Point candidate = points.get(i);
+			if(point.distance(candidate) <= eps) {
+				result.add(candidate);
 			}
 		}
-		return seeds;
+		
+		return result;
 	}
 	
-	public int getNextId() {
-		clusterId++;
-		return clusterId;
-	}
-	
-	public void print() {
-		System.out.println("** Set of points **");
-		for(int i = 0 ; i < points.size() ;i++) {
-			System.out.println("Cluster: " + points.get(i).clusterId + " Coords: " + points.get(i).getCoordinates());
+	private String plot(ArrayList<Point> points, Double eps, Integer pts, Integer clusterId) {
+		String plot = "";
+		
+		for(int i = 0 ; i < points.size() ; i++) {
+			Point point = points.get(i);
+			plot += "CID=" + point.clusterId + "\t";
 		}
-		System.out.println("\n\n");
-	}
-
-	public void printNon0() {
-		System.out.println("** Set of points **");
-		for(int i = 0 ; i < points.size() ;i++) {
-			if(points.get(i).clusterId != NOISE)
-				System.out.println("Cluster: " + points.get(i).clusterId + " Coords: " + points.get(i).getCoordinates());
-		}
-		System.out.println("\n\n");
+		
+		plot += "\n CLUSTERS=" + clusterId;
+		
+		System.out.println(plot);
+		
+		String file = "/Users/arthur/Git/DataMiningProject/DBSCAN/output" + points.get(0).coordinates.length + "_IDS_" + eps + "_" + pts + ".txt";
+		
+		write(file, plot);
+		
+		return plot;
 	}
 	
-	public static void main(String[] args) {
+	public void write(String path, String content) {
 		try {
-			Dbscan db = new Dbscan(10.0, 3);
-			db.dbscan();
-			db.print();
-			db.printNon0();
-		} catch (Exception e) {
+			BufferedWriter bw = new BufferedWriter(new FileWriter(new File(path)));
+			bw.write(content);
+			bw.close();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
+	
+	public void seeDistances(Integer n) {
+		Double[][] distances = new Double[n][n];
+		String print = "";
+		for(int i = 0 ; i < n ; i++) {
+			Point a = data.get(i);
+			for(int j = 0 ; j < n ; j++) {
+				Point b = data.get(j);
+				distances[i][j] = new Double(a.distance(b));
+				print += distances[i][j] + " ";
+			}
+			print += "\n";
+		}
+		System.out.println(print);
+	}
+
+	private void readData(String path) {
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(new File(path)));
+			String line = "";
+			
+			while( (line = br.readLine()) != null ) {
+				String[] aux = line.split("\t");
+                Double[] coord = new Double[aux.length];
+                for(int i = 0 ; i < aux.length ; i++) {
+                        coord[i] = new Double(aux[i]);
+                }
+                data.add(new Point(coord));
+			}
+			
+			br.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void main(String[] args) {
+		Dbscan db = new Dbscan("/Users/arthur/Luizalabs/Git/teste-projeto/src/main/java/teste/dbscan/conjunto_agrupamento.data.txt");
+		long start = System.currentTimeMillis();
+		int clusters = db.dbscan( 7.0, 4);
+		long end = (System.currentTimeMillis() - start) / 1000;
+		System.out.println("TOOK: " + end + "s CLUSTERS=" + clusters);
+	}
+	
 }
