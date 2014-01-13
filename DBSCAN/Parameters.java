@@ -98,7 +98,7 @@ public class Parameters {
 	}
 	
 	public static void main(String[] args) {
-		Parameters param = new Parameters("/Users/arthur/Git/DataMiningProject/DBSCAN/conjunto_agrupamento.data.txt");
+		Parameters param = new Parameters("C:\\Git\\DataMiningProject\\DBSCAN\\conjunto_agrupamento.data.txt");
 		param.plot(4);
 	}
 	
