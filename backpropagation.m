@@ -1,8 +1,10 @@
-function [ W1, W2, B1, B2 ] = backpropagation( X_train, expected_train, X_test, expected_test, X_val, expected_val, num_epochs, validation_checks, num_neurons_hid, num_neurons_output, learning_rate, momentum)
+function [ W1, W2, B1, B2 ] = backpropagation( X_train, expected_train, X_test, expected_test, X_val, expected_val, num_epochs, validation_checks, num_neurons_hid, num_neurons_output, learning_rate, momentum, learning_rate_incr, learning_rate_dec)
 
     % Reference: S. Haykin, Neural Networks: A Comprehensive Foundation, 
-    % 2nd Edition, Prentice-Hall, 1999 and Coursera Machine Learning Class 
-    % Notes (Stanford University) - https://www.coursera.org/course/ml
+    % 2nd Edition, Prentice-Hall, 1999, Coursera Machine Learning Class 
+    % Notes (Stanford University) - https://www.coursera.org/course/ml and
+    % article APRENDIZADO POR TRANSFERENCIA PARA APLICACOES ORIENTADAS
+    % A USUARIO: UMA EXPERIENCIA EM LINGUA DE SINAIS
     % 
     % Note that the implementation presented here is modified from the
     % original reference.
@@ -81,12 +83,25 @@ function [ W1, W2, B1, B2 ] = backpropagation( X_train, expected_train, X_test, 
         
         % Weights update
         if (i == 1)
-            W2 = W2 - learning_rate * Grad_W2;
-            W1 = W1 - learning_rate * Grad_W1;
-        else
-            W2 = W2 - learning_rate * Grad_W2 - momentum * W2_epochs(:,:,i);
-            W1 = W1 - learning_rate * Grad_W1 - momentum * W1_epochs(:,:,i);
+            DeltaW2 = - learning_rate * Grad_W2;
+            DeltaW1 = - learning_rate * Grad_W1;
+            
+            W2 = W2 + DeltaW2;
+            W1 = W1 + DeltaW1;
+        else           
+            DeltaW2 = - learning_rate * Grad_W2 - (1 - momentum) * W2_epochs(:,:,i-1);
+            DeltaW1 = - learning_rate * Grad_W1 - (1 - momentum) * W1_epochs(:,:,i-1);
+            
+            W2 = W2 + DeltaW2;
+            W1 = W1 + DeltaW1;
+            
+            if (mse_train(i-1) < mse_train(i))
+                learning_rate = learning_rate * learning_rate_dec;
+            else
+                learning_rate = learning_rate * learning_rate_incr;
+            end
         end
+        
         
         if (i ~= 1)
             plot([i-1 i], [mse_train(i-1) mse_train(i)],'b');
