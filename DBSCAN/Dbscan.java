@@ -106,14 +106,12 @@ public class Dbscan {
 		
 		for(int i = 0 ; i < points.size() ; i++) {
 			Point point = points.get(i);
-			plot += "CID=" + point.clusterId + "\t";
+			plot += point.clusterId + "\t";
 		}
-		
-		plot += "\n CLUSTERS=" + clusterId;
 		
 		System.out.println(plot);
 		
-		String file = "/Users/arthur/Git/DataMiningProject/DBSCAN/output" + points.get(0).coordinates.length + "_IDS_" + eps + "_" + pts + ".txt";
+		String file = "output" + points.get(0).coordinates.length + "_IDS_" + eps + "_" + pts + ".txt";
 		
 		write(file, plot);
 		
@@ -168,9 +166,11 @@ public class Dbscan {
 	}
 	
 	public static void main(String[] args) {
-		Dbscan db = new Dbscan("/Users/arthur/Luizalabs/Git/teste-projeto/src/main/java/teste/dbscan/conjunto_agrupamento.data.txt");
+		Dbscan db = new Dbscan(args[2]);
 		long start = System.currentTimeMillis();
-		int clusters = db.dbscan( 7.0, 4);
+		Double 	eps = new Double(args[0]);
+		Integer minPoints = new Integer(args[1]);
+		int clusters = db.dbscan( eps, minPoints);
 		long end = (System.currentTimeMillis() - start) / 1000;
 		System.out.println("TOOK: " + end + "s CLUSTERS=" + clusters);
 	}

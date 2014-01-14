@@ -19,7 +19,7 @@ public class Plotter {
         /* FIRST RUN IN THE 16DIM FILE */
         for(Double eps = 3.0 ; eps < 20.0 ; eps++) {
             for(Integer pts = 2 ; pts < 10 ; pts++) {
-                Dbscan db = new Dbscan("/Users/arthur/Git/DataMiningProject/DBSCAN/conjunto_agrupamento.data.txt");
+                Dbscan db = new Dbscan("conjunto_agrupamento.data.txt");
                 db.dbscan(eps, pts);
             }
         }
@@ -27,7 +27,7 @@ public class Plotter {
         /* SECOND RUN IN THE 10DIM FILE */
         for(Double eps = 3.0 ; eps < 20.0 ; eps++) {
             for(Integer pts = 2 ; pts < 10 ; pts++) {
-                Dbscan db2 = new Dbscan("/Users/arthur/Git/DataMiningProject/DBSCAN/conjunto_agrupamento_10.txt");
+                Dbscan db2 = new Dbscan("conjunto_agrupamento_10.txt");
                 db2.dbscan(eps, pts);
             }
         }
