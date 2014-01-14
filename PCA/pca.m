@@ -1,5 +1,4 @@
 function [ XReduced, eigenvals, eigenvecs ] = pca( X_aux, reduceTo )
-    
 
     eigenvecs = [];
     
@@ -10,19 +9,8 @@ function [ XReduced, eigenvals, eigenvecs ] = pca( X_aux, reduceTo )
     
     covX = (X' * X) / (n-1);
     
-    alpha = sym('alpha','real');
-    
-    I = eye(size(covX,2));
-    
-    IA = I * alpha;
-    
-    D = covX - IA;
-    
-    
-    p = det(D);
-    
-    % Calculates the possible solutions for the equation
-    eigenvals = subs(solve(p));
+    % Compute eigenvalues with a error of 0.00001
+    eigenvals = eigenvaluesQrAlgo(covX, 0.00001);
     
     eigenvals = sort(eigenvals, 'descend');
     
@@ -31,9 +19,9 @@ function [ XReduced, eigenvals, eigenvecs ] = pca( X_aux, reduceTo )
        
         eigenval = eigenvals(i,1);
         
-        % Use Reduced row echelon form of D in order get possible solutions
-        % to the linear equations ending up with a eigenvector
-        A = subs(D, alpha, eigenval);
+        I = eye(size(covX,2));
+        
+        A = covX - eigenval * I;
         
         [~, U, ~] = lu(A);
         

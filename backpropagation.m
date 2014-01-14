@@ -1,4 +1,4 @@
-function [ W1, W2, B1, B2 ] = backpropagation( X_train, expected_train, X_test, expected_test, X_val, expected_val, num_epochs, validation_checks, num_neurons_hid, num_neurons_output, learning_rate, momentum, learning_rate_incr, learning_rate_dec)
+function [ W1_epochs, W2_epochs, B1_epochs, B2_epochs, mse_train, mse_test, mse_val ] = backpropagation( X_train, expected_train, X_test, expected_test, X_val, expected_val, num_epochs, validation_checks, num_neurons_hid, num_neurons_output, learning_rate, momentum, learning_rate_incr, learning_rate_dec)
 
     % Reference: S. Haykin, Neural Networks: A Comprehensive Foundation, 
     % 2nd Edition, Prentice-Hall, 1999, Coursera Machine Learning Class 
@@ -21,6 +21,8 @@ function [ W1, W2, B1, B2 ] = backpropagation( X_train, expected_train, X_test, 
     % store weights for each epoch
     W1_epochs = zeros(num_neurons_hid, size(X_train,2), num_epochs);
     W2_epochs = zeros(num_neurons_output, num_neurons_hid, num_epochs);
+    B1_epochs = zeros(num_neurons_hid, 1, num_epochs);
+    B2_epochs = zeros(num_neurons_output, 1, num_epochs);
     
     % number of instances
     n_train = size(X_train,1);
@@ -40,6 +42,11 @@ function [ W1, W2, B1, B2 ] = backpropagation( X_train, expected_train, X_test, 
     
     validation_checks_count = 0;
     
+    Grad_W2 = zeros(size(W2));
+    Grad_W1 = zeros(size(W1));
+    Grad_B2 = zeros(size(B2));
+    Grad_B1 = zeros(size(B1));
+    
     for i=1:num_epochs
         
         % store weights
@@ -56,14 +63,14 @@ function [ W1, W2, B1, B2 ] = backpropagation( X_train, expected_train, X_test, 
         A3_test = feedforward(X_test, W1, W2, B1, B2);
         A3_val = feedforward(X_val, W1, W2, B1, B2);
         
-        error_train = A3_train' - expected_train;
-        error_test = A3_test' - expected_test;
-        error_val = A3_val' - expected_val;
+        error_train = A3_train - double(expected_train)';
+        error_test = A3_test - double(expected_test)';
+        error_val = A3_val - double(expected_val)';
     
         % Summation over the output neuros
-        mse_train(i) = sum(mean(error_train).^2);
-        mse_test(i) = sum(mean(error_test).^2);
-        mse_val(i) = sum(mean(error_val).^2);
+        mse_train(i) = sum(mean(error_train.^2));
+        mse_test(i) = sum(mean(error_test.^2));
+        mse_val(i) = sum(mean(error_val.^2));
         
         % Stop criteria: mse on validation checks
         if (i ~= 1 && mse_val(i) > mse_val(i))    
@@ -76,31 +83,38 @@ function [ W1, W2, B1, B2 ] = backpropagation( X_train, expected_train, X_test, 
         
         
         % Batch gradient computation (matrix form)
-        Delta3 = error_train' .* dsigmoid(Z3);       
+        Delta3 = error_train .* dsigmoid(Z3);       
         Delta2 = (W2' * Delta3) .* dsigmoid(Z2);
         Grad_W2 = (1/n_train) * Delta3 * A2';        
         Grad_W1 = (1/n_train) * Delta2 * X_train;
+        Grad_B2 = (1/n_train) * Delta3(:,1);
+        Grad_B1 = (1/n_train) * Delta2(:,1);
         
         % Weights update
         if (i == 1)
             DeltaW2 = - learning_rate * Grad_W2;
             DeltaW1 = - learning_rate * Grad_W1;
-            
-            W2 = W2 + DeltaW2;
-            W1 = W1 + DeltaW1;
+            DeltaB2 = - learning_rate * Grad_B2;
+            DeltaB1 = - learning_rate * Grad_B1;
         else           
-            DeltaW2 = - learning_rate * Grad_W2 - (1 - momentum) * W2_epochs(:,:,i-1);
-            DeltaW1 = - learning_rate * Grad_W1 - (1 - momentum) * W1_epochs(:,:,i-1);
+            DeltaW2 = - learning_rate * Grad_W2 - (1 - momentum) * DeltaW2;
+            DeltaW1 = - learning_rate * Grad_W1 - (1 - momentum) * DeltaW1;
+            DeltaB2 = - learning_rate * Grad_B2 - (1 - momentum) * DeltaB2;
+            DeltaB1 = - learning_rate * Grad_B1 - (1 - momentum) * DeltaB1;
             
-            W2 = W2 + DeltaW2;
-            W1 = W1 + DeltaW1;
-            
+            % adaptive learning rate
             if (mse_train(i-1) < mse_train(i))
                 learning_rate = learning_rate * learning_rate_dec;
             else
                 learning_rate = learning_rate * learning_rate_incr;
             end
         end
+        
+        W2 = W2 + DeltaW2;
+        W1 = W1 + DeltaW1;
+            
+        B2 = B2 + DeltaB2;
+        B1 = B1 + DeltaB1;
         
         
         if (i ~= 1)
