@@ -17,26 +17,20 @@ public class Plotter {
 
     public static void main(String[] args) {
         /* FIRST RUN IN THE 16DIM FILE */
-		String runs = "";
-        for(Double eps = 3.0 ; eps < 5.0 ; eps = eps + 0.5) {
-            for(Integer pts = 2 ; pts < 6 ; pts++) {
-                Dbscan db = new Dbscan("C:\\Git\\DataMiningProject\\DBSCAN\\conjunto_agrupamento.data.txt");
-                runs += "EPS-" + eps + "PTS-" + pts + "CLUSTERS-" + db.dbscan(eps, pts) + "\n";
+        for(Double eps = 3.0 ; eps < 20.0 ; eps++) {
+            for(Integer pts = 2 ; pts < 10 ; pts++) {
+                Dbscan db = new Dbscan("conjunto_agrupamento.data.txt");
+                db.dbscan(eps, pts);
             }
         }
-		
-		write("C:\\Git\\DataMiningProject\\DBSCAN\\16DIM-results.txt", runs);
-		runs = "";
 
         /* SECOND RUN IN THE 10DIM FILE */
-        for(Double eps = 1.0 ; eps < 5.0 ; eps = eps + 0.5) {
-            for(Integer pts = 2 ; pts < 6 ; pts++) {
-                Dbscan db2 = new Dbscan("C:\\Git\\DataMiningProject\\DBSCAN\\conjunto_agrupamento_10.txt");
-                runs += "EPS-" + eps + "PTS-" + pts + "CLUSTERS-" + db2.dbscan(eps, pts) + "\n";
+        for(Double eps = 3.0 ; eps < 20.0 ; eps++) {
+            for(Integer pts = 2 ; pts < 10 ; pts++) {
+                Dbscan db2 = new Dbscan("conjunto_agrupamento_10.txt");
+                db2.dbscan(eps, pts);
             }
         }
-		
-		write("C:\\Git\\DataMiningProject\\DBSCAN\\10DIM-results.txt", runs);
     }
 
 }
