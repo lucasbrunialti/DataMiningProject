@@ -10,7 +10,7 @@
  X_train = X(1:250,:);
  y_train = y(1:250,:);
 
- % 50% do restante para teste e 50% para validação
+ % 50% do restante para teste e 50% para validaï¿½ï¿½o
  X_test = X(251:10125, :);
  y_test = y(251:10125, :);
 
@@ -28,7 +28,7 @@
  
 for nh=10:50:330
 
-    [ W1, W2, B1, B2, ~, mse_train ,~ ] = backpropagation(  X_train, y_train, X_test, y_test, X_val, y_val, 500, 10, 40, 1, 0.01, 0.9, 1.05, 0.8)
+    [ W1, W2, B1, B2, ~, mse_train ,~ ] = backpropagation(  X_train, y_train, X_test, y_test, X_val, y_val, 500, 10, nh, 1, 0.01, 0.9, 1.05, 0.8)
  
     [~, i] = min(mse_train);
     
